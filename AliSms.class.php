@@ -20,8 +20,8 @@ class AliSms implements Sms
     private $private_params = [];//请求参数,业务参数
     private $phone=0;//用户手机号
     private $template_id ='SMS_104410009';//短信模板id
-    private $app_key = 'LTAI0qesBpG457ZF';
-    private $app_secret = '2yCB7Ys0pNpzfx0tY50QcX8yeZmQAt';
+    private $app_key = '';
+    private $app_secret = '';
     // private $app_key = 'testId';
     // private $app_secret = 'testSecret';
     private $action = 'SendSms';
