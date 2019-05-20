@@ -1,0 +1,24 @@
+{
+    "name": "bonza/sms",
+    "license": "MIT",
+    "description": "支持PHP7.0语法，易扩展的jwt-token类库",
+    "type": "library",
+    "authors": [
+        {
+            "name": "bonza",
+            "email": "bonzaphp@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.0.0",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "bonza\\sms\\": "src/"
+        }
+    },
+    "extra": {
+    }
+}

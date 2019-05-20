@@ -6,7 +6,7 @@
  * @date     2017-10-19 10:15:51
  */
 
-namespace sms;
+namespace bonza\sms;
 /**
 * 短信发送类
 */
@@ -28,7 +28,7 @@ class AliSms implements Sms
     // private $action = 'DescribeRegions';
     private $signature_method = 'HMAC-SHA1';
     private $request_method = 'GET';
-    private $signname = '播芽';
+    private $signName = '播芽';
     private $template_param = "{\"code\":\"110335\"}";
     private $signature_nonce = '';
 
@@ -36,26 +36,32 @@ class AliSms implements Sms
     {
         $this->code=$this->random($length,$numeric);
         $this->signature_nonce=$this->random(16,0);
-        $this->common_params = $this->staticCommonParams();
+        $this->common_params = $this->commonParams();
         $this->private_params = $this->setPrivateParams();
         // echo $numeric.'---';
     }
+
     /**
      * 构建请求系统参数
-     * @return [type] [description]
+     * @return array [type] [description]
      */
-    private function staticCommonParams(){
+    private function commonParams(){
         return [
             'AccessKeyId'=>$this->app_key,
-            'Timestamp'=>$this->getTimestamp(),
+            'Timestamp'=>self::getTimestamp(),
             'Format'=>$this->format,
             'SignatureMethod'=>$this->signature_method,
             'SignatureVersion'=>'1.0',
             'SignatureNonce'=>$this->signature_nonce,
         ];
     }
+
+    /**
+     * @author bonzaphp@gmail.com
+     * @return array
+     */
     private function setCommonParams(){
-           return ['Signature'=>$this->getSign()] + $this->staticCommonParams();
+           return ['Signature'=>$this->getSign()] + $this->commonParams();
     }
     /**
      * 构建请求业务参数
@@ -65,7 +71,7 @@ class AliSms implements Sms
             'Action'=>$this->action,
             'Version'=>'2017-05-25',
             'RegionId'=>'cn-hangzhou',
-            'SignName'=>$this->signname,
+            'SignName'=>$this->signName,
             'PhoneNumbers'=>$this->phone,
             'TemplateCode'=>$this->template_id,
             'TemplateParam'=>$this->setTemplateParam(),
@@ -77,12 +83,23 @@ class AliSms implements Sms
         $this->template_param = "{\"code\":\"$this->code\"}";
         return $this->template_param;
     }
-    public function setSignName($signname){
-        $this->signname = $signname;
+
+    /**
+     * 设置签名
+     * @author bonzaphp@gmail.com
+     * @param $signName
+     */
+    public function setSignName($signName){
+        $this->signName = $signName;
     }
-    //签名算法
+
+    /**
+     * 签名算法
+     * @author bonzaphp@gmail.com
+     * @return string
+     */
     public function getSign(){
-        $params = $this->staticCommonParams() + $this->setPrivateParams();
+        $params = $this->commonParams() + $this->setPrivateParams();
         $signstring = '';
         ksort($params);
         foreach ($params as $k => &$v) {
@@ -93,9 +110,9 @@ class AliSms implements Sms
                 unset($params[$k]);
             }
         }
-        $stringqurey = http_build_query($params);
-        $stringqurey = $this->aliSmsEncode($stringqurey);
-        $str_sms = $this->request_method.'&' .urlencode('/').'&'.$this->aliSmsEncode(urlencode($stringqurey));
+        $stringQuery = http_build_query($params);
+        $stringQuery = $this->aliSmsEncode($stringQuery);
+        $str_sms = $this->request_method.'&' .urlencode('/').'&'.$this->aliSmsEncode(urlencode($stringQuery));
         // echo $str_sms;die;
         // $str_sms = str_replace('%26','&',$str_sms);
         $sign = base64_encode(hash_hmac('sha1', $str_sms, $this->app_secret.'&', true));
@@ -103,10 +120,11 @@ class AliSms implements Sms
         // print_r($params);die;
         return $sign;
     }
+
     /**
      * 阿里云通信，短信接口，编码规则
      * @param  [type] $str [description]
-     * @return [type]      [description]
+     * @return mixed [type]      [description]
      */
     private function aliSmsEncode($str){
         $str=str_replace('+','%20',$str);
@@ -114,9 +132,11 @@ class AliSms implements Sms
         $str=str_replace('%7E','~',$str);
         return $str;
     }
+
     /**
      * 设置短信模板id
      * @param string $template_id [SMS_104410009]
+     * @return string
      */
     public function setTemplateId($template_id=''){
         $this->template_id = $template_id;
@@ -145,7 +165,13 @@ class AliSms implements Sms
     public function setFormat($format='json'){
         $this->format = $format;
     }
-    private function getTimestamp(){
+
+    /**
+     * 获取当前时间的格式化显示
+     * @author bonzaphp@gmail.com
+     * @return false|string
+     */
+    static private function getTimestamp(){
         // return '2017-07-12T02:42:19Z';
         return date("Y-m-d\TH:i:s\Z");
     }
@@ -169,13 +195,14 @@ class AliSms implements Sms
     public function getCode(){
         return $this->code;
     }
-     /**
-      * 发送验证码
-      * @return [type]              []
-      */
+
+    /**
+     * 发送验证码
+     * @return void [type]              []
+     */
     public function sendSms(){
         // $this->getSign();
-        $params = array_merge($this->staticCommonParams(),$this->setPrivateParams());
+        $params = array_merge($this->commonParams(),$this->setPrivateParams());
         ksort($params);
         $params = array_merge(['Signature'=>$this->getSign()],$params);
         foreach ($params as $k => &$v) {
@@ -187,7 +214,7 @@ class AliSms implements Sms
         // echo $url;die;
         // print_r($params);die;
         // $result = $this->http_post(self::TARGET,$params);
-        $result = $this->http_get($url);
+        $result = $this->httpGet($url);
         // echo $result;die;
         $res = json_decode($result,true);
         print_r($res);
@@ -197,16 +224,16 @@ class AliSms implements Sms
     //短信发送方法
     private function Post($data) {
         $url_info = parse_url(self::TARGET);
-        $httpheader = "POST " . $url_info['path'] . " HTTP/1.0\r\n";
-        $httpheader .= "Host:" . $url_info['host'] . "\r\n";
-        $httpheader .= "Content-Type:application/x-www-form-urlencoded\r\n";
-        $httpheader .= "Content-Length:" . strlen($data) . "\r\n";
-        $httpheader .= "Connection:close\r\n\r\n";
-        //$httpheader .= "Connection:Keep-Alive\r\n\r\n";
-        $httpheader .= $data;
+        $httpHeader = "POST " . $url_info['path'] . " HTTP/1.0\r\n";
+        $httpHeader .= "Host:" . $url_info['host'] . "\r\n";
+        $httpHeader .= "Content-Type:application/x-www-form-urlencoded\r\n";
+        $httpHeader .= "Content-Length:" . strlen($data) . "\r\n";
+        $httpHeader .= "Connection:close\r\n\r\n";
+        //$httpHeader .= "Connection:Keep-Alive\r\n\r\n";
+        $httpHeader .= $data;
 
         $fd = fsockopen($url_info['host'], 80);
-        fwrite($fd, $httpheader);
+        fwrite($fd, $httpHeader);
         $gets = "";
         while(!feof($fd)) {
             $gets .= fread($fd, 128);
@@ -215,11 +242,12 @@ class AliSms implements Sms
         return $gets;
     }
 
-        /**
+    /**
      * GET 请求
      * @param string $url
+     * @return bool|mixed
      */
-    private function http_get($url){
+    private function httpGet($url){
         $oCurl = curl_init();
         if(stripos($url,"https://")!==FALSE){
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -247,7 +275,7 @@ class AliSms implements Sms
      * @param boolean $post_file 是否文件上传
      * @return string content
      */
-    private function http_post($url,$param,$post_file=false){
+    private function httpPost($url, $param, $post_file=false){
         $oCurl = curl_init();
         if(stripos($url,"https://")!==FALSE){
             curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -274,7 +302,7 @@ class AliSms implements Sms
                     }
             $strPOST = $param;
         } else {
-            $aPOST = array();
+            $aPOST = [];
             foreach($param as $key=>$val){
                 $aPOST[] = $key."=".urlencode($val);
             }

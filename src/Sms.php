@@ -5,7 +5,7 @@
  * @website  http://ysg.bonza.cn
  * @date     2017-10-19 10:15:51
  */
-namespace sms;
+namespace bonza\sms;
 
 interface Sms
 {
