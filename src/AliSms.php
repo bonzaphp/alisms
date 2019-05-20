@@ -31,6 +31,7 @@ class AliSms implements Sms
     private $signName = '播芽';
     private $template_param = "{\"code\":\"110335\"}";
     private $signature_nonce = '';
+    private $OutId = '';
 
     public function __construct($length = 6 , $numeric = 1)
     {
@@ -38,7 +39,22 @@ class AliSms implements Sms
         $this->signature_nonce=$this->random(16,0);
         $this->common_params = $this->commonParams();
         $this->private_params = $this->setPrivateParams();
-        // echo $numeric.'---';
+    }
+
+    /**
+     * @return string
+     */
+    public function getOutId(): string
+    {
+        return $this->OutId;
+    }
+
+    /**
+     * @param string $OutId
+     */
+    public function setOutId(string $OutId)
+    {
+        $this->OutId = $OutId;
     }
 
     /**
@@ -75,7 +91,7 @@ class AliSms implements Sms
             'PhoneNumbers'=>$this->phone,
             'TemplateCode'=>$this->template_id,
             'TemplateParam'=>$this->setTemplateParam(),
-            // 'OutId' =>'123',
+             'OutId' =>$this->OutId,
         ];
     }
 
@@ -94,13 +110,12 @@ class AliSms implements Sms
     }
 
     /**
-     * 签名算法
+     * 签名
      * @author bonzaphp@gmail.com
      * @return string
      */
     public function getSign(){
         $params = $this->commonParams() + $this->setPrivateParams();
-        $signstring = '';
         ksort($params);
         foreach ($params as $k => &$v) {
             if (!empty($v)) {
